@@ -76,7 +76,7 @@
 ; )
 
 (defn driver-loop
-   ([]
+   ([
       (prn)
       (println "Interprete de PL/0 en Clojure")
       (println "Trabajo Practico de 75.14/95.48 Lenguajes Formales - 2021")
@@ -88,8 +88,8 @@
       (println "VIRTU <archivo>: mostrar la RI de un programa escrito en PL/0")
       (println "INTER <archivo>: interpretar la RI de un programa escrito en PL/0")
       (prn)
-      (driver-loop :iniciado))
-   ([status]
+      (driver-loop :iniciado)])
+   ([status
       (print "PL/0> ") (flush)
       (try (let [linea (clojure.string/split (clojure.string/upper-case (read-line)) #" "), cabeza (first linea)]
                 (cond (= cabeza "SALIR") 'CHAU
@@ -115,18 +115,18 @@
                                                            (driver-loop status)))))
                       (= cabeza "") (driver-loop status)
                       :else (do (print "ERROR: ") (println (buscar-mensaje 23)) (flush) (driver-loop status))))
-           (catch Exception e (println "ERROR ->" (clojure.string/trim (clojure.string/upper-case (get (Throwable->map e) :cause)))) (driver-loop status))))
-)
+           (catch Exception e (println "ERROR ->" (clojure.string/trim (clojure.string/upper-case (get (Throwable->map e) :cause)))) (driver-loop status)))]))
+
 
 (defn escanear-arch [nom]
       (map #(let [aux (try (clojure.edn/read-string %) (catch Exception e (symbol %)))] (if (or (number? aux) (string? aux)) aux (symbol %)))
             (remove empty? (with-open [rdr (clojure.java.io/reader nom)]
-                                      (flatten (doall (map #(re-seq #"CONST|VAR|PROCEDURE|CALL|BEGIN|END|IF|THEN|WHILE|DO|ODD|READLN|WRITELN|WRITE|\<\=|\>\=|\<\>|\<|\>|\=|\:\=|\(|\)|\.|\,|\;|\+|\-|\*|\/|\'[^\']*\'|\d+|[A-Z][A-Z0-9]*|\!|\"|\#|\$|\%|\&|\'|\@|\?|\^|\:|\[|\\|\]|\_|\{|\||\}|\~" (a-mayusculas-salvo-strings %)) (line-seq rdr)))))))
-)
+                                      (flatten (doall (map #(re-seq #"CONST|VAR|PROCEDURE|CALL|BEGIN|END|IF|THEN|WHILE|DO|ODD|READLN|WRITELN|WRITE|\<\=|\>\=|\<\>|\<|\>|\=|\:\=|\(|\)|\.|\,|\;|\+|\-|\*|\/|\'[^\']*\'|\d+|[A-Z][A-Z0-9]*|\!|\"|\#|\$|\%|\&|\'|\@|\?|\^|\:|\[|\\|\]|\_|\{|\||\}|\~" (a-mayusculas-salvo-strings %)) (line-seq rdr))))))))
+
 
 (defn listar
   ([prog] (listar prog 0))
-  ([prog tab]
+  ([prog tab
     (if (empty? prog)
         (prn)
         (let [s1 (first prog),
@@ -137,8 +137,8 @@
                      :else (do (print s1) (print " ")))
                (recur (rest prog) (cond (= s1 'BEGIN) (+ tab 2)
                                          (= s2 'END) (- tab 2)
-                                         :else tab))))))
-)
+                                         :else tab)))))]))
+
 
 (defn dar-error [amb cod]
   (if (= (estado amb) :sin-errores)
@@ -152,8 +152,8 @@
           (listar (simb-no-parseados-aun amb)) (prn)
           (flush)
           [(simb-actual amb) '() (simb-ya-parseados amb) cod])
-      amb)
-)
+      amb))
+
 
 (defn buscar-mensaje [cod]
   (case cod
@@ -180,67 +180,67 @@
    21 "ENTRADA INVALIDA. INTENTE DE NUEVO!"
    22 "ARCHIVO NO ENCONTRADO"
    23 "COMANDO DESCONOCIDO"
-   cod)
-)
+   cod))
+
 
 (defn parsear [tokens]
   (let [simbolo-inicial (first tokens)]
        (if (nil? simbolo-inicial)
            (dar-error ['EOF '() [] :sin-errores] 1)
-           (programa [simbolo-inicial (rest tokens) [] :sin-errores [] 0 []])))
+           (programa [simbolo-inicial (rest tokens) [] :sin-errores [] 0 []]))))
                    ; [simb-actual  simb-no-parseados-aun  simb-ya-parseados  estado  contexto  prox-var  bytecode]
-)
+
 
 (defn simb-actual [amb]
-  (amb 0)
-)
+  (amb 0))
+
 
 (defn simb-no-parseados-aun [amb]
-  (amb 1)
-)
+  (amb 1))
+
 
 (defn simb-ya-parseados [amb]
-  (amb 2)
-)
+  (amb 2))
+
 
 (defn estado [amb]
-  (amb 3)
-)
+  (amb 3))
+
 
 (defn contexto [amb]
-  (amb 4)
-)
+  (amb 4))
+
 
 (defn prox-var [amb]
-  (amb 5)
-)
+  (amb 5))
+
 
 (defn bytecode [amb]
-  (amb 6)
-)
+  (amb 6))
+
 
 (defn escanear [amb] 
   (if (= (estado amb) :sin-errores)
       [(let [simb (first (simb-no-parseados-aun amb))]
             (if (nil? simb) 'EOF simb)) (rest (simb-no-parseados-aun amb)) (conj (simb-ya-parseados amb) (simb-actual amb)) (estado amb) (contexto amb) (prox-var amb) (bytecode amb)]
-      amb)
-)
+      amb))
+
 
 (defn procesar-terminal [amb x cod-err]
   (if (= (estado amb) :sin-errores)
       (if (or (and (symbol? x) (= (simb-actual amb) x)) (x (simb-actual amb)))
           (escanear amb)
           (dar-error amb cod-err))
-      amb)
-)
+      amb))
+
 
 (defn controlar-duplicado [amb]
   (if (= (estado amb) :sin-errores)
       (if (ya-declarado-localmente? (last (simb-ya-parseados amb)) (contexto amb))
           (dar-error amb 16)
           amb)
-      amb)
-)
+      amb))
+
 
 (defn verificar-tipo [amb control]
   (if (= (estado amb) :sin-errores)
@@ -248,79 +248,79 @@
            (if (empty? coincidencias)
                (dar-error amb 20)
                (control amb coincidencias)))
-      amb)
-)
+      amb))
+
 
 (defn verificar-tipo-var [amb]
   (verificar-tipo amb #(if (not= 'VAR (second (last %2)))
                            (dar-error %1 17)
-                           %1))
-)
+                           %1)))
+
 
 (defn verificar-tipo-procedure [amb]
   (verificar-tipo amb #(if (not= 'PROCEDURE (second (last %2)))
                            (dar-error %1 18)
-                           %1))
-)
+                           %1)))
+
 
 (defn verificar-tipo-const-o-var [amb]
   (verificar-tipo amb #(if (not (contains? (hash-set 'CONST 'VAR) (second (last %2))))
                            (dar-error %1 19)
-                           %1))
-)
+                           %1)))
+
 
 (defn cargar-const-en-tabla [amb]
   (if (= (estado amb) :sin-errores)
       (assoc amb 4 [((contexto amb) 0) (conj ((contexto amb) 1) [(last (drop-last 2 (simb-ya-parseados amb))) 'CONST (last (simb-ya-parseados amb))])])
-      amb)
-)
+      amb))
+
 
 (defn cargar-procedure-en-tabla [amb]
   (if (= (estado amb) :sin-errores)
       (assoc amb 4 [((contexto amb) 0) (conj ((contexto amb) 1) [(last (simb-ya-parseados amb)) 'PROCEDURE (count (bytecode amb))])])
-      amb)
-)
+      amb))
+
 
 (defn inicializar-contexto-global [amb]
   (if (= (estado amb) :sin-errores)
       (assoc amb 4 [[0] []])           ; [fronteras  tabla]
-      amb)
-)
+      amb))
+
 
 (defn restaurar-contexto-anterior [amb]
   (if (= (estado amb) :sin-errores)
       (assoc amb 4 [(vec (butlast ((contexto amb) 0))) (subvec ((contexto amb) 1) 0 (last ((contexto amb) 0)))])
-      amb)
-)
+      amb))
+
 
 (defn programa [amb]
   (-> amb
       (inicializar-contexto-global)
       (bloque)  
       (procesar-terminal ,,, (symbol ".") 2)
-      (generar ,,, 'HLT))
-)
+      (generar ,,, 'HLT)))
+
 
 (defn fixup-bloque [amb ini-bloque]
   (if (= (estado amb) :sin-errores)
       (if (not= (inc (count (bytecode ini-bloque))) (count (bytecode amb)))
           (fixup amb (count (bytecode ini-bloque)))
           (assoc amb 6 (vec (butlast (bytecode amb)))))
-      amb)
-)
+      amb))
+
 
 (defn bloque [amb]
   (if (= (estado amb) :sin-errores)
-      (let [ini-bloque amb]
+      (let [ini-bloque amb
             (-> amb
                 (generar ,,, 'JMP '?)
                 (declaracion-const)
                 (declaracion-var)
                 (declaraciones-procedures)
                 (fixup-bloque ,,, ini-bloque)
-                (proposicion)))
-      amb)
-)
+                (proposicion))])
+      amb))
+
 
 (defn declarar-mas-idents-igual-numero [amb]
   (if (= (estado amb) :sin-errores)
@@ -334,8 +334,8 @@
               (cargar-const-en-tabla)
               (recur))
           amb)
-      amb)
-)
+      amb))
+
 
 (defn declaracion-const [amb]
   (if (= (estado amb) :sin-errores)
@@ -350,8 +350,8 @@
               (declarar-mas-idents-igual-numero)
               (procesar-terminal ,,, (symbol ";") 3))
           amb)
-      amb)
-)
+      amb))
+
 
 (defn declarar-mas-idents [amb]
   (if (= (estado amb) :sin-errores)
@@ -363,8 +363,8 @@
               (cargar-var-en-tabla)
               (recur))
           amb)
-      amb)
-)
+      amb))
+
 
 (defn declaraciones-procedures [amb]
   (if (= (estado amb) :sin-errores)
@@ -382,8 +382,8 @@
               (procesar-terminal ,,, (symbol ";") 4)
               (recur))
           amb)
-      amb)
-)
+      amb))
+
 
 (defn procesar-mas-propos [amb]
   (if (= (estado amb) :sin-errores)
@@ -393,8 +393,8 @@
               (proposicion)
               (recur))
           amb)
-      amb)
-)
+      amb))
+
 
 (defn leer-mas-idents [amb]
   (if (= (estado amb) :sin-errores)
@@ -406,8 +406,8 @@
               (generar-con-valor ,,, 'IN)
               (recur))
           amb)
-      amb)
-)
+      amb))
+
 
 (defn escribir-cadena-o-expresion [amb]
   (if (= (estado amb) :sin-errores)
@@ -418,8 +418,8 @@
           (-> amb
               (expresion)
               (generar ,,, 'OUT)))
-      amb)
-)
+      amb))
+
 
 (defn escribir-mas-cadenas-o-expresiones [amb]
   (if (= (estado amb) :sin-errores)
@@ -429,8 +429,8 @@
               (escribir-cadena-o-expresion)
               (recur))
           amb)
-      amb)
-)
+      amb))
+
 
 (defn procesar-writeln [amb]
   (if (= (estado amb) :sin-errores)
@@ -441,8 +441,8 @@
               (escribir-mas-cadenas-o-expresiones)
               (procesar-terminal ,,, (symbol ")") 13))
           amb)
-      amb)
-)
+      amb))
+
 
 (defn proposicion [amb]
   (if (= (estado amb) :sin-errores)
@@ -471,7 +471,7 @@
                          (procesar-terminal ,,, 'END 9))
                   IF (let [primera-fase (-> amb
                                             (escanear)
-                                            (condicion))]
+                                            (condicion))
                            (if (= (estado primera-fase) :sin-errores)
                                (-> primera-fase
                                    (generar ,,, 'JC (+ 2 (count (bytecode primera-fase))))
@@ -479,11 +479,11 @@
                                    (procesar-terminal ,,, 'THEN 10)
                                    (proposicion)
                                    (fixup ,,, (inc (count (bytecode primera-fase)))))
-                               primera-fase))
+                               primera-fase)])
                WHILE (let [primera-fase (-> amb
-                                            (escanear))]
+                                            (escanear))
                            (let [segunda-fase (-> primera-fase
-                                                  (condicion))]
+                                                  (condicion))
                                  (if (= (estado segunda-fase) :sin-errores)
                                      (-> segunda-fase
                                          (generar ,,, 'JC (+ 2 (count (bytecode segunda-fase))))
@@ -492,7 +492,7 @@
                                          (proposicion)
                                          (generar ,,, 'JMP (count (bytecode primera-fase)))
                                          (fixup ,,, (inc (count (bytecode segunda-fase)))))
-                                     segunda-fase)))
+                                     segunda-fase)])])
               READLN (-> amb
                          (escanear)
                          (procesar-terminal ,,, (symbol "(") 12)
@@ -512,8 +512,8 @@
                          (procesar-writeln)
                          (generar ,,, 'NL))
             amb))
-      amb)
-)
+      amb))
+
 
 (defn procesar-operador-relacional [amb]
   (if (= (estado amb) :sin-errores)
@@ -531,8 +531,8 @@
         <= (-> amb
                (escanear))
        (dar-error amb 14))
-      amb)
-)
+      amb))
+
 
 (defn condicion [amb]
   (if (= (estado amb) :sin-errores)
@@ -550,8 +550,8 @@
                        (expresion)
                        (generar-operador-relacional ,,, operador-relacional))
                    primera-fase)))
-      amb)
-)
+      amb))
+
 
 (defn procesar-mas-terminos [amb]
   (if (= (estado amb) :sin-errores)
@@ -567,8 +567,8 @@
                (generar ,,, 'SUB)
                (recur))
          amb)
-      amb)
-)
+      amb))
+
 
 (defn procesar-mas-factores [amb]
   (if (= (estado amb) :sin-errores)
@@ -584,16 +584,16 @@
                (generar ,,, 'DIV)
                (recur))
          amb)
-      amb)
-)
+      amb))
+
 
 (defn factor [amb]
   (if (= (estado amb) :sin-errores)
       (cond
-        (identificador? (simb-actual amb)) (-> amb
+        (identificador? (simb-actual amb)) (-> amb)
                                        (escanear)
                                        (verificar-tipo-const-o-var)
-                                       (generar-factor-const-o-var))
+                                       (generar-factor-const-o-var)
         (integer? (simb-actual amb)) (let [num (simb-actual amb)]
                                           (-> amb
                                               (escanear)
@@ -603,16 +603,16 @@
                                                (expresion)
                                                (procesar-terminal ,,, (symbol ")") 13))
         :else (dar-error amb 15))
-      amb)
-)
+      amb))
+
 
 (defn generar-con-valor [amb instr]
   (if (= (estado amb) :sin-errores)
       (let [coincidencias (buscar-coincidencias amb),
-            valor (nth (last coincidencias) 2)]
-               (generar amb instr valor))
-      amb)
-)
+            valor (nth (last coincidencias) 2)
+               (generar amb instr valor)])
+      amb))
+
 
 (defn generar-factor-const-o-var [amb]
   (if (= (estado amb) :sin-errores)
@@ -622,8 +622,8 @@
            (if (= tipo 'CONST)
                (generar amb 'PFI valor)        
                (generar amb 'PFM valor)))      
-      amb)
-)
+      amb))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; LA SIGUIENTE FUNCION DEBERA SER COMPLETADA PARA QUE ANDE EL INTERPRETE DE PL/0 
@@ -668,10 +668,10 @@
                       (recur cod mem (inc cont-prg) (vec (butlast pila-dat)) pila-llam))
                   (do (print (apply str (butlast (rest (str (second fetched)))))) (flush)
                       (recur cod mem (inc cont-prg) pila-dat pila-llam)))
-          NL (do (prn) (recur cod mem (inc cont-prg) pila-dat pila-llam))
-       )
-  )
-)
+          NL (do (prn) (recur cod mem (inc cont-prg) pila-dat pila-llam)))))
+       
+  
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; LAS FUNCIONES QUE SIGUEN DEBERAN SER IMPLEMENTADAS PARA QUE ANDE EL INTERPRETE DE PL/0 
@@ -685,8 +685,8 @@
 ; user=> (a-mayusculas-salvo-strings "  writeln ('Se ingresa un valor, se muestra su doble.');")
 ; "  WRITELN ('Se ingresa un valor, se muestra su doble.');"
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn a-mayusculas-salvo-strings [s] 
-)
+(defn a-mayusculas-salvo-strings [s]) 
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un dato y devuelve true si es una palabra reservada de PL/0; si no, devuelve false. Por ejemplo:
@@ -699,8 +699,8 @@
 ; user=> (palabra-reservada? "ASIGNAR")
 ; false
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn palabra-reservada? [x]
-)
+(defn palabra-reservada? [x])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un dato y devuelve true si es un identificador valido de PL/0; si no, devuelve false. Por ejemplo:
@@ -713,8 +713,8 @@
 ; user=> (identificador? 'CALL)
 ; false
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn identificador? [x]
-)
+(defn identificador? [x])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un dato y devuelve true si es una cadena conteniendo una cadena de PL/0; si no, devuelve false. Por ejemplo:
@@ -727,8 +727,8 @@
 ; user=> (cadena? 'Hola)
 ; false
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn cadena? [x]
-)
+(defn cadena? [x])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un identificador y un contexto (un vector formado por dos subvectores: el primero con las sucesivas
@@ -745,8 +745,8 @@
 ; user=> (ya-declarado-localmente? 'Y '[[0 3 5] [[X VAR 0] [Y VAR 1] [INICIAR PROCEDURE 1] [Y CONST 2] [ASIGNAR PROCEDURE 2] [Y CONST 6]]])
 ; true
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn ya-declarado-localmente? [ident context]
-)
+(defn ya-declarado-localmente? [ident context])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, lo devuelve modificado
@@ -759,8 +759,8 @@
 ; user=> (cargar-var-en-tabla '[nil () [VAR X , Y] :sin-errores [[0] [[X VAR 0]]] 1 [[JMP ?]]])
 ; [nil () [VAR X Y] :sin-errores [[0] [[X VAR 0] [Y VAR 1]]] 2 [[JMP ?]]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn cargar-var-en-tabla [amb]
-)
+(defn cargar-var-en-tabla [amb])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, lo devuelve modificado
@@ -771,8 +771,8 @@
 ; user=> (inicializar-contexto-local '[nil () [] :sin-errores [[0] [[X VAR 0] [Y VAR 1] [INI PROCEDURE 1]]] 2 [[JMP ?]]])
 ; [nil () [] :sin-errores [[0 3] [[X VAR 0] [Y VAR 1] [INI PROCEDURE 1]]] 2 [[JMP ?]]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn inicializar-contexto-local [amb]
-)
+(defn inicializar-contexto-local [amb])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, verifica si se debe
@@ -784,8 +784,8 @@
 ; user=> (declaracion-var ['VAR (list 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=") 7 (symbol ";") 'Y (symbol ":=") 12 (symbol ";") 'END (symbol ".")) [] :sin-errores [[0] []] 0 '[[JMP ?]]])
 ; [BEGIN (X := 7 ; Y := 12 ; END .) [VAR X , Y ;] :sin-errores [[0] [[X VAR 0] [Y VAR 1]]] 2 [[JMP ?]]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn declaracion-var [amb]
-)
+(defn declaracion-var [amb])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, verifica si se debe
@@ -800,8 +800,8 @@
 ; user=> (procesar-signo-unario ['- (list 7 (symbol ";") 'Y ':= '- 12 (symbol ";") 'END (symbol ".")) ['VAR 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0] [Y VAR 1]]] 2 []])
 ; [7 (; Y := - 12 ; END .) [VAR X , Y ; BEGIN X := -] :sin-errores [[0] [[X VAR 0] [Y VAR 1]]] 2 []]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn procesar-signo-unario [amb]
-)
+(defn procesar-signo-unario [amb])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, se devuelve un
@@ -812,8 +812,8 @@
 ; user=> (termino ['X (list '* 2 'END (symbol ".")) ['VAR 'X (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0]]] 1 []])
 ; [END (.) [VAR X ; BEGIN X := X * 2] :sin-errores [[0] [[X VAR 0]]] 1 [[PFM 0] [PFI 2] MUL]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn termino [amb]
-)
+(defn termino [amb])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, se devuelve un
@@ -826,8 +826,8 @@
 ; user=> (expresion ['- (list (symbol "(") 'X '* 2 '+ 1 (symbol ")") 'END (symbol ".")) ['VAR 'X (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0]]] 1 []])
 ; [END (.) [VAR X ; BEGIN X := - ( X * 2 + 1 )] :sin-errores [[0] [[X VAR 0]]] 1 [[PFM 0] [PFI 2] MUL [PFI 1] ADD NEG]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn expresion [amb]
-)
+(defn expresion [amb])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un operador aritmetico diadico de Clojure y un vector. Si el vector tiene mas de un elemento y si los dos
@@ -854,8 +854,27 @@
 ; user=> (aplicar-aritmetico + '[a b c])
 ; [a b c]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn _aplicar-aux [op pila]
+  (op (last pila) (last (drop-last pila))))
+
 (defn aplicar-aritmetico [op pila]
-)
+  (if (and (>= (count pila) 2)
+           (contains? #{+ - / *} op)
+           (number? (last pila))
+           (number? (last (drop-last pila))))
+    (cons (take (- (count pila) 2) pila) (_aplicar-aux op pila))
+    pila))
+
+(aplicar-aritmetico + [1 2])
+(aplicar-aritmetico - [1 4 1])
+(aplicar-aritmetico * [1 2 4])
+(aplicar-aritmetico / [1 2 4])
+(aplicar-aritmetico + nil)
+(aplicar-aritmetico + [])
+(aplicar-aritmetico + [1])
+(aplicar-aritmetico 'hola [1 2 4])
+(aplicar-aritmetico count [1 2 4])
+(aplicar-aritmetico + '[a b c])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un operador relacional de Clojure y un vector. Si el vector tiene mas de un elemento y si los dos
@@ -877,8 +896,8 @@
 ; user=> (aplicar-relacional <= '[a b c])
 ; [a b c]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn aplicar-relacional [op pila]
-)
+(defn aplicar-relacional [op pila])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un vector con instrucciones de la RI y las imprime numeradas a partir de 0. Siempre retorna nil.
@@ -897,8 +916,11 @@
 ; 0 nil
 ; nil
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn _dumpaux [ind cod]
+  (str ind " " cod "\n"))
+
 (defn dump [cod]
-)
+  (print (reduce str (map _dumpaux (range (count cod)) cod))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Si recibe un ambiente y una instruccion de la RI, y si el estado es :sin-errores, devuelve el ambiente con la
@@ -915,11 +937,11 @@
 ; [nil () [VAR X] :error [[0] []] 0 [[JMP ?]]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn generar 
-  ([amb instr]
-  )
-  ([amb instr val]
-  )
-)
+  ([amb instr])
+  
+  ([amb instr val]))
+  
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y devuelve una lista con las ternas [identificador, tipo, valor] provenientes del segundo
@@ -928,8 +950,8 @@
 ; user=> (buscar-coincidencias '[nil () [CALL X] :sin-errores [[0 3] [[X VAR 0] [Y VAR 1] [A PROCEDURE 1] [X VAR 2] [Y VAR 3] [B PROCEDURE 2]]] 6 [[JMP ?] [JMP 4] [CAL 1] RET]])
 ; ([X VAR 0] [X VAR 2])
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn buscar-coincidencias [amb]
-)
+(defn buscar-coincidencias [amb])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y la ubicacion de un JMP a corregir en el vector de bytecode. Si el estado no es :sin-errores,
@@ -942,8 +964,8 @@
 ; user=> (fixup ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP 4] [CAL 1] RET [PFM 2] OUT NL RET]] 0)
 ; [WRITELN (END .) [] :sin-errores [[0 3] []] 6 [[JMP 8] [JMP 4] [CAL 1] RET [PFM 2] OUT NL RET]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn fixup [amb ubi]
-)
+(defn fixup [amb ubi])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y un operador relacional de PL/0. Si el estado no es :sin-errores o si el operador no es
@@ -958,8 +980,8 @@
 ; user=> (generar-operador-relacional ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] '>=)
 ; [WRITELN (END .) [] :sin-errores [[0 3] []] 6 [[JMP ?] [JMP ?] [CAL 1] RET GTE]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn generar-operador-relacional [amb operador]
-)
+(defn generar-operador-relacional [amb operador])
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y un operador monadico de signo de PL/0. Si el estado no es :sin-errores o si el operador no es
@@ -976,7 +998,7 @@
 ; user=> (generar-signo [nil () [] :sin-errores '[[0] [[X VAR 0]]] 1 '[MUL ADD]] '-)
 ; [nil () [] :sin-errores [[0] [[X VAR 0]]] 1 [MUL ADD NEG]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn generar-signo [amb signo]
-)
+(defn generar-signo [amb signo])
+
 
 true

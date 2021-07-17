@@ -667,7 +667,26 @@
                 (recur cod mem (inc cont-prg) (vec (butlast pila-dat)) pila-llam))
             (do (print (apply str (butlast (rest (str (second fetched)))))) (flush)
                 (recur cod mem (inc cont-prg) pila-dat pila-llam)))
-      NL (do (prn) (recur cod mem (inc cont-prg) pila-dat pila-llam)))))
+      NL (do (prn) (recur cod mem (inc cont-prg) pila-dat pila-llam))
+      POP ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      PFM ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      PFI ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      ADD ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      SUB ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      MUL ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      DIV ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      EQ ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      NEQ ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      GT ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      GTE ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      LT ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      LTE ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      NEG ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      ODD ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+      JMP ()
+      JC ()
+      CAL ()
+      RET ())))
 
 
 
@@ -684,8 +703,10 @@
 ; user=> (a-mayusculas-salvo-strings "  writeln ('Se ingresa un valor, se muestra su doble.');")
 ; "  WRITELN ('Se ingresa un valor, se muestra su doble.');"
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn a-mayusculas-salvo-strings [s])
+(defn a-mayusculas-salvo-strings [s]
+  )
 
+(re-seq #"[a-zA-Z]" "V2ASdc?")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un dato y devuelve true si es una palabra reservada de PL/0; si no, devuelve false. Por ejemplo:
@@ -718,8 +739,18 @@
 ; user=> (identificador? 'CALL)
 ; false
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn identificador? [x])
+(defn _all_chars [x]
+  (every? (fn [x] (Character/isLetterOrDigit x)) x))
 
+(defn identificador? [x]
+  (and (not (palabra-reservada? x))
+       (Character/isLetter (first (str x)))
+       (_all_chars (rest (str x)))))
+
+(identificador? 2)
+(identificador? 'V2)
+(identificador? "V2")
+(identificador? 'CALL)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un dato y devuelve true si es una cadena conteniendo una cadena de PL/0; si no, devuelve false. Por ejemplo:
@@ -739,9 +770,9 @@
 (cadena? "Hola")
 (cadena? "'Hola")
 (cadena? 'Hola)
-(cadena? "''") ; ESTE CASO NO ESTOY SEGURO DE CÓMO DEBERÍA FUNCIONAR
-; CAMBIARÍA SI ES >= 2 O >= 3, NO SE SI TIENE QUE TENER AL MENOS UNA LETRA
+(cadena? "''")
 (cadena? "'")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un identificador y un contexto (un vector formado por dos subvectores: el primero con las sucesivas
 ; posiciones de inicio de los distintos ambitos/scopes y el segundo con ternas [identificador, tipo, valor]
@@ -771,7 +802,10 @@
 ; user=> (cargar-var-en-tabla '[nil () [VAR X , Y] :sin-errores [[0] [[X VAR 0]]] 1 [[JMP ?]]])
 ; [nil () [VAR X Y] :sin-errores [[0] [[X VAR 0] [Y VAR 1]]] 2 [[JMP ?]]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn cargar-var-en-tabla [amb])
+(defn cargar-var-en-tabla [amb]
+  (if (= (estado amb) :sin-errores)
+    (IMPLEMENTARRRRRRR)
+    amb))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -783,7 +817,10 @@
 ; user=> (inicializar-contexto-local '[nil () [] :sin-errores [[0] [[X VAR 0] [Y VAR 1] [INI PROCEDURE 1]]] 2 [[JMP ?]]])
 ; [nil () [] :sin-errores [[0 3] [[X VAR 0] [Y VAR 1] [INI PROCEDURE 1]]] 2 [[JMP ?]]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn inicializar-contexto-local [amb])
+(defn inicializar-contexto-local [amb]
+  (if (= (estado amb) :sin-errores)
+    (IMPLEMENTARRRRRRR)
+    amb))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -796,7 +833,10 @@
 ; user=> (declaracion-var ['VAR (list 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=") 7 (symbol ";") 'Y (symbol ":=") 12 (symbol ";") 'END (symbol ".")) [] :sin-errores [[0] []] 0 '[[JMP ?]]])
 ; [BEGIN (X := 7 ; Y := 12 ; END .) [VAR X , Y ;] :sin-errores [[0] [[X VAR 0] [Y VAR 1]]] 2 [[JMP ?]]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn declaracion-var [amb])
+(defn declaracion-var [amb]
+  (if (= (estado amb) :sin-errores)
+    (IMPLEMENTARRRRRRR)
+    amb))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -812,7 +852,10 @@
 ; user=> (procesar-signo-unario ['- (list 7 (symbol ";") 'Y ':= '- 12 (symbol ";") 'END (symbol ".")) ['VAR 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0] [Y VAR 1]]] 2 []])
 ; [7 (; Y := - 12 ; END .) [VAR X , Y ; BEGIN X := -] :sin-errores [[0] [[X VAR 0] [Y VAR 1]]] 2 []]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn procesar-signo-unario [amb])
+(defn procesar-signo-unario [amb]
+  (if (= (estado amb) :sin-errores)
+    (IMPLEMENTARRRRRRR)
+    amb))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -824,7 +867,10 @@
 ; user=> (termino ['X (list '* 2 'END (symbol ".")) ['VAR 'X (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0]]] 1 []])
 ; [END (.) [VAR X ; BEGIN X := X * 2] :sin-errores [[0] [[X VAR 0]]] 1 [[PFM 0] [PFI 2] MUL]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn termino [amb])
+(defn termino [amb]
+  (if (= (estado amb) :sin-errores)
+    (IMPLEMENTARRRRRRR)
+    amb))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -838,7 +884,10 @@
 ; user=> (expresion ['- (list (symbol "(") 'X '* 2 '+ 1 (symbol ")") 'END (symbol ".")) ['VAR 'X (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0]]] 1 []])
 ; [END (.) [VAR X ; BEGIN X := - ( X * 2 + 1 )] :sin-errores [[0] [[X VAR 0]]] 1 [[PFM 0] [PFI 2] MUL [PFI 1] ADD NEG]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn expresion [amb])
+(defn expresion [amb]
+  (if (= (estado amb) :sin-errores)
+    (IMPLEMENTARRRRRRR)
+    amb))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -972,9 +1021,15 @@
 ; [nil () [VAR X] :error [[0] []] 0 [[JMP ?]]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn generar
-  ([amb instr])
+  ([amb instr]
+   (if (= (estado amb) :sin-errores)
+     (IMPLEMENTARRRRRRR)
+     amb))
 
-  ([amb instr val]))
+  ([amb instr val]
+   (if (= (estado amb) :sin-errores)
+     (IMPLEMENTARRRRRRR)
+     amb)))
 
 
 
@@ -985,7 +1040,10 @@
 ; user=> (buscar-coincidencias '[nil () [CALL X] :sin-errores [[0 3] [[X VAR 0] [Y VAR 1] [A PROCEDURE 1] [X VAR 2] [Y VAR 3] [B PROCEDURE 2]]] 6 [[JMP ?] [JMP 4] [CAL 1] RET]])
 ; ([X VAR 0] [X VAR 2])
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn buscar-coincidencias [amb])
+(defn buscar-coincidencias [amb]
+  (if (= (estado amb) :sin-errores)
+    (IMPLEMENTARRRRRRR)
+    amb))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -999,7 +1057,10 @@
 ; user=> (fixup ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP 4] [CAL 1] RET [PFM 2] OUT NL RET]] 0)
 ; [WRITELN (END .) [] :sin-errores [[0 3] []] 6 [[JMP 8] [JMP 4] [CAL 1] RET [PFM 2] OUT NL RET]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn fixup [amb ubi])
+(defn fixup [amb ubi]
+  (if (= (estado amb) :sin-errores)
+    (IMPLEMENTARRRRRRR)
+    amb))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1015,7 +1076,10 @@
 ; user=> (generar-operador-relacional ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] '>=)
 ; [WRITELN (END .) [] :sin-errores [[0 3] []] 6 [[JMP ?] [JMP ?] [CAL 1] RET GTE]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn generar-operador-relacional [amb operador])
+(defn generar-operador-relacional [amb operador]
+  (if (= (estado amb) :sin-errores)
+    (IMPLEMENTARRRRRRR)
+    amb))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1033,7 +1097,10 @@
 ; user=> (generar-signo [nil () [] :sin-errores '[[0] [[X VAR 0]]] 1 '[MUL ADD]] '-)
 ; [nil () [] :sin-errores [[0] [[X VAR 0]]] 1 [MUL ADD NEG]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn generar-signo [amb signo])
+(defn generar-signo [amb signo]
+  (if (= (estado amb) :sin-errores)
+    (IMPLEMENTARRRRRRR)
+    amb))
 
 
 true

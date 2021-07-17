@@ -1,11 +1,3 @@
-(ns tp-formales.core
-  (:gen-class))
-
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
-
 (declare driver-loop)
 (declare escanear-arch)
 (declare a-mayusculas-salvo-strings)
@@ -70,10 +62,20 @@
 (declare aplicar-relacional)
 (declare dump)
 
-; (defn spy
-;   ([x] (do (prn x) x))
-;   ([msg x] (do (print msg) (print ": ") (prn x) x))
-; )
+(declare aplicar-paridad)
+(declare _a-mayusculas)
+(declare _sin-modificar)
+(declare _all_chars)
+(declare _aplicar-arit-aux)
+(declare _aplicar-rel-aux)
+(declare _bool-to-int)
+(declare _dumpaux)
+(declare _ya-declarado?)
+
+(defn spy
+  ([x] (do (prn x) x))
+  ([msg x] (do (print msg) (print ": ") (prn x) x))
+)
 
 (defn driver-loop
   ([(prn)
@@ -668,29 +670,38 @@
             (do (print (apply str (butlast (rest (str (second fetched)))))) (flush)
                 (recur cod mem (inc cont-prg) pila-dat pila-llam)))
       NL (do (prn) (recur cod mem (inc cont-prg) pila-dat pila-llam))
+
       POP ((recur cod mem (inc cont-prg) pila-dat pila-llam))
       PFM ((recur cod mem (inc cont-prg) pila-dat pila-llam))
       PFI ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      ADD ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      SUB ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      MUL ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      DIV ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      EQ ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      NEQ ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      GT ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      GTE ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      LT ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      LTE ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      NEG ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      ODD ((recur cod mem (inc cont-prg) pila-dat pila-llam))
+
+      ADD ((recur cod mem (inc cont-prg) (aplicar-aritmetico + pila-dat) pila-llam))
+      SUB ((recur cod mem (inc cont-prg) (aplicar-aritmetico - pila-dat) pila-llam))
+      MUL ((recur cod mem (inc cont-prg) (aplicar-aritmetico * pila-dat) pila-llam))
+      DIV ((recur cod mem (inc cont-prg) (aplicar-aritmetico / pila-dat) pila-llam))
+
+      EQ ((recur cod mem (inc cont-prg) (aplicar-relacional = pila-dat) pila-llam))
+      NEQ ((recur cod mem (inc cont-prg) (aplicar-relacional not= pila-dat) pila-llam))
+      GT ((recur cod mem (inc cont-prg) (aplicar-relacional > pila-dat) pila-llam))
+      GTE ((recur cod mem (inc cont-prg) (aplicar-relacional >= pila-dat) pila-llam))
+      LT ((recur cod mem (inc cont-prg) (aplicar-relacional < pila-dat) pila-llam))
+      LTE ((recur cod mem (inc cont-prg) (aplicar-relacional <= pila-dat) pila-llam))
+
+      NEG ((recur cod mem (inc cont-prg) (aplicar-aritmetico * (conj pila-dat -1)) pila-llam))
+      ODD ((recur cod mem (inc cont-prg) (aplicar-paridad pila-dat) pila-llam))
+
       JMP ()
       JC ()
       CAL ()
       RET ())))
 
 
+(defn aplicar-paridad [pila]
+  (if (and (>= (count pila) 1)
+           (number? (last pila))
+           (even? (last pila))) 1 0))
 
-
+(aplicar-paridad [1 2 3])
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; LAS FUNCIONES QUE SIGUEN DEBERAN SER IMPLEMENTADAS PARA QUE ANDE EL INTERPRETE DE PL/0 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -703,10 +714,25 @@
 ; user=> (a-mayusculas-salvo-strings "  writeln ('Se ingresa un valor, se muestra su doble.');")
 ; "  WRITELN ('Se ingresa un valor, se muestra su doble.');"
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn a-mayusculas-salvo-strings [s]
-  )
+(defn _a-mayusculas [s]
+  (cond
+    (not (string? (first s))) ""
+    (empty? (first s)) (str \' (_sin-modificar (rest s)))
+    :else (str (clojure.string/upper-case (first s)) (_a-mayusculas (rest s)))))
 
-(re-seq #"[a-zA-Z]" "V2ASdc?")
+(defn _sin-modificar [s]
+  (cond
+    (not (string? (first s))) ""
+    (empty? (first s)) (str \' (_a-mayusculas (rest s)))
+    :else (str (first s) (_sin-modificar (rest s)))))
+
+(defn a-mayusculas-salvo-strings [s]
+  (_a-mayusculas (butlast (re-seq #"[^']*" s))))
+
+(a-mayusculas-salvo-strings "  const Y = 2;")
+(a-mayusculas-salvo-strings "  writeln ('Se ingresa un valor, se muestra su doble.'); enmayuscula")
+(a-mayusculas-salvo-strings "  writeln ('Se ingresa un valor, se muestra su doble.'); enmayuscula'")
+(a-mayusculas-salvo-strings "  writeln ('Se ingresa un valor, se muestra su doble.'); enmayuscula'''enmin")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un dato y devuelve true si es una palabra reservada de PL/0; si no, devuelve false. Por ejemplo:
@@ -720,7 +746,7 @@
 ; false
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn palabra-reservada? [x]
-  (contains? #{"CONST" "VAR" "PROCEDURE" "CALL" "BEGIN" 
+  (contains? #{"CONST" "VAR" "PROCEDURE" "CALL" "BEGIN"
                "END" "IF" "THEN" "WHILE" "DO" "ODD"} (str x)))
 
 (palabra-reservada? 'CALL)
@@ -788,8 +814,16 @@
 ; user=> (ya-declarado-localmente? 'Y '[[0 3 5] [[X VAR 0] [Y VAR 1] [INICIAR PROCEDURE 1] [Y CONST 2] [ASIGNAR PROCEDURE 2] [Y CONST 6]]])
 ; true
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn ya-declarado-localmente? [ident context])
+(defn _ya-declarado? [ident lst] 
+  (contains? (into #{} lst) ident))
 
+(defn ya-declarado-localmente? [ident context]
+  (_ya-declarado? ident (map first (drop (last (first context)) (second context)))))
+
+(ya-declarado-localmente? 'Y '[[0] [[X VAR 0] [Y VAR 1]]])
+(ya-declarado-localmente? 'Z '[[0] [[X VAR 0] [Y VAR 1]]])
+(ya-declarado-localmente? 'Y '[[0 3 5] [[X VAR 0] [Y VAR 1] [INICIAR PROCEDURE 1] [Y CONST 2] [ASIGNAR PROCEDURE 2]]])
+(ya-declarado-localmente? 'Y '[[0 3 5] [[X VAR 0] [Y VAR 1] [INICIAR PROCEDURE 1] [Y CONST 2] [ASIGNAR PROCEDURE 2] [Y CONST 6]]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, lo devuelve modificado

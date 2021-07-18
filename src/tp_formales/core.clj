@@ -1,4 +1,4 @@
-(ns user)
+(ns tp-formales.core)
 
 (declare driver-loop)
 (declare escanear-arch)
@@ -631,30 +631,25 @@
             (do (print (apply str (butlast (rest (str (second fetched)))))) (flush)
                 (recur cod mem (inc cont-prg) pila-dat pila-llam)))
       NL (do (prn) (recur cod mem (inc cont-prg) pila-dat pila-llam))
-
-      POP ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      PFM ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-      PFI ((recur cod mem (inc cont-prg) pila-dat pila-llam))
-
-      ADD ((recur cod mem (inc cont-prg) (aplicar-aritmetico + pila-dat) pila-llam))
-      SUB ((recur cod mem (inc cont-prg) (aplicar-aritmetico - pila-dat) pila-llam))
-      MUL ((recur cod mem (inc cont-prg) (aplicar-aritmetico * pila-dat) pila-llam))
-      DIV ((recur cod mem (inc cont-prg) (aplicar-aritmetico / pila-dat) pila-llam))
-
-      EQ ((recur cod mem (inc cont-prg) (aplicar-relacional = pila-dat) pila-llam))
-      NEQ ((recur cod mem (inc cont-prg) (aplicar-relacional not= pila-dat) pila-llam))
-      GT ((recur cod mem (inc cont-prg) (aplicar-relacional > pila-dat) pila-llam))
-      GTE ((recur cod mem (inc cont-prg) (aplicar-relacional >= pila-dat) pila-llam))
-      LT ((recur cod mem (inc cont-prg) (aplicar-relacional < pila-dat) pila-llam))
-      LTE ((recur cod mem (inc cont-prg) (aplicar-relacional <= pila-dat) pila-llam))
-
-      NEG ((recur cod mem (inc cont-prg) (aplicar-aritmetico * (conj pila-dat -1)) pila-llam))
-      ODD ((recur cod mem (inc cont-prg) (aplicar-paridad pila-dat) pila-llam))
-
-      JMP ()
-      JC ()
-      CAL ()
-      RET ())))
+      POP (recur cod mem (inc cont-prg) pila-dat pila-llam)
+      PFM (recur cod mem (inc cont-prg) pila-dat pila-llam)
+      PFI (recur cod mem (inc cont-prg) pila-dat pila-llam)
+      ADD (recur cod mem (inc cont-prg) (aplicar-aritmetico + pila-dat) pila-llam)
+      SUB (recur cod mem (inc cont-prg) (aplicar-aritmetico - pila-dat) pila-llam)
+      MUL (recur cod mem (inc cont-prg) (aplicar-aritmetico * pila-dat) pila-llam)
+      DIV (recur cod mem (inc cont-prg) (aplicar-aritmetico / pila-dat) pila-llam)
+      EQ (recur cod mem (inc cont-prg) (aplicar-relacional = pila-dat) pila-llam)
+      NEQ (recur cod mem (inc cont-prg) (aplicar-relacional not= pila-dat) pila-llam)
+      GT (recur cod mem (inc cont-prg) (aplicar-relacional > pila-dat) pila-llam)
+      GTE (recur cod mem (inc cont-prg) (aplicar-relacional >= pila-dat) pila-llam)
+      LT (recur cod mem (inc cont-prg) (aplicar-relacional < pila-dat) pila-llam)
+      LTE (recur cod mem (inc cont-prg) (aplicar-relacional <= pila-dat) pila-llam)
+      NEG (recur cod mem (inc cont-prg) (aplicar-aritmetico * (conj pila-dat -1)) pila-llam)
+      ODD (recur cod mem (inc cont-prg) (aplicar-paridad pila-dat) pila-llam)
+      JMP (recur cod mem cont-prg pila-dat pila-llam)
+      JC (recur cod mem cont-prg pila-dat pila-llam)
+      CAL (recur cod mem cont-prg pila-dat pila-llam)
+      RET (recur cod mem cont-prg pila-dat pila-llam))))
 
 
 (defn aplicar-paridad [pila]
@@ -662,7 +657,6 @@
            (number? (last pila))
            (even? (last pila))) 1 0))
 
-(aplicar-paridad [1 2 3])
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; LAS FUNCIONES QUE SIGUEN DEBERAN SER IMPLEMENTADAS PARA QUE ANDE EL INTERPRETE DE PL/0 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -690,11 +684,6 @@
 (defn a-mayusculas-salvo-strings [s]
   (_a-mayusculas (butlast (re-seq #"[^']*" s))))
 
-(a-mayusculas-salvo-strings "  const Y = 2;")
-(a-mayusculas-salvo-strings "  writeln ('Se ingresa un valor, se muestra su doble.'); enmayuscula")
-(a-mayusculas-salvo-strings "  writeln ('Se ingresa un valor, se muestra su doble.'); enmayuscula'")
-(a-mayusculas-salvo-strings "  writeln ('Se ingresa un valor, se muestra su doble.'); enmayuscula'''enmin")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un dato y devuelve true si es una palabra reservada de PL/0; si no, devuelve false. Por ejemplo:
 ; user=> (palabra-reservada? 'CALL)
@@ -709,11 +698,6 @@
 (defn palabra-reservada? [x]
   (contains? #{"CONST" "VAR" "PROCEDURE" "CALL" "BEGIN"
                "END" "IF" "THEN" "WHILE" "DO" "ODD"} (str x)))
-
-(palabra-reservada? 'CALL)
-(palabra-reservada? "CALL")
-(palabra-reservada? 'ASIGNAR)
-(palabra-reservada? "ASIGNAR")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un dato y devuelve true si es un identificador valido de PL/0; si no, devuelve false. Por ejemplo:
@@ -734,11 +718,6 @@
        (Character/isLetter (first (str x)))
        (_all_chars (rest (str x)))))
 
-(identificador? 2)
-(identificador? 'V2)
-(identificador? "V2")
-(identificador? 'CALL)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un dato y devuelve true si es una cadena conteniendo una cadena de PL/0; si no, devuelve false. Por ejemplo:
 ; user=> (cadena? "'Hola'")
@@ -752,13 +731,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn cadena? [x]
   (and (string? x) (>= (count x) 2) (= (first x) \') (= (last x) \')))
-
-(cadena? "'Hola'")
-(cadena? "Hola")
-(cadena? "'Hola")
-(cadena? 'Hola)
-(cadena? "''")
-(cadena? "'")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un identificador y un contexto (un vector formado por dos subvectores: el primero con las sucesivas
@@ -781,11 +753,6 @@
 (defn ya-declarado-localmente? [ident context]
   (_ya-declarado? ident (map first (drop (last (first context)) (second context)))))
 
-(ya-declarado-localmente? 'Y '[[0] [[X VAR 0] [Y VAR 1]]])
-(ya-declarado-localmente? 'Z '[[0] [[X VAR 0] [Y VAR 1]]])
-(ya-declarado-localmente? 'Y '[[0 3 5] [[X VAR 0] [Y VAR 1] [INICIAR PROCEDURE 1] [Y CONST 2] [ASIGNAR PROCEDURE 2]]])
-(ya-declarado-localmente? 'Y '[[0 3 5] [[X VAR 0] [Y VAR 1] [INICIAR PROCEDURE 1] [Y CONST 2] [ASIGNAR PROCEDURE 2] [Y CONST 6]]])
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, lo devuelve modificado
 ; con la variable declarada como terna [identificador, tipo, valor] en el segundo subvector del vector contexto y el
@@ -802,8 +769,6 @@
     (assoc (assoc amb 5 (inc (prox-var amb))) 4 [((contexto amb) 0) (conj ((contexto amb) 1) [(last (simb-ya-parseados amb)) 'VAR (prox-var amb)])])
     amb))
 
-(cargar-var-en-tabla '[nil () [VAR X] :sin-errores [[0] []] 0 [[JMP ?]]])
-(cargar-var-en-tabla '[nil () [VAR X , Y] :sin-errores [[0] [[X VAR 0]]] 1 [[JMP ?]]])
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, lo devuelve modificado
 ; con el tamano del segundo subvector del vector contexto agregado al final del primer subvector del vector contexto.
@@ -818,8 +783,6 @@
     (assoc amb 4 [(conj ((contexto amb) 0) (count ((contexto amb) 1))) ((contexto amb) 1)])
     amb))
 
-(inicializar-contexto-local '[nil () [] :error [[0] [[X VAR 0] [Y VAR 1] [INI PROCEDURE 1]]] 2 [[JMP ?]]])
-(inicializar-contexto-local '[nil () [] :sin-errores [[0] [[X VAR 0] [Y VAR 1] [INI PROCEDURE 1]]] 2 [[JMP ?]]])
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, verifica si se debe
 ; parsear una declaracion de variables de PL/0. Si no es asi, se devuelve el ambiente intacto. De lo contrario, se
@@ -834,13 +797,6 @@
   (if (= (estado amb) :sin-errores)
     amb
     amb))
-
-(declaracion-var ['VAR (list 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=") 7 (symbol ";") 'Y (symbol ":=") 12 (symbol ";") 'END (symbol ".")) [] :error [[0] []] 0 '[[JMP ?]]])
-[VAR (X , Y ; BEGIN X := 7 ; Y := 12 ; END .) [] :error [[0] []] 0 [[JMP ?]]]
-[VAR (X , Y ; BEGIN X := 7 ; Y := 12 ; END .) [] :error [[0] []] 0 [[JMP ?]]]
-(declaracion-var ['VAR (list 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=") 7 (symbol ";") 'Y (symbol ":=") 12 (symbol ";") 'END (symbol ".")) [] :sin-errores [[0] []] 0 '[[JMP ?]]])
-[VAR (X , Y ; BEGIN X := 7 ; Y := 12 ; END .) [] :sin-errores [[0] []] 0 [[JMP ?]]]
-[BEGIN (X := 7 ; Y := 12 ; END .) [VAR X , Y ;] :sin-errores [[0] [[X VAR 0] [Y VAR 1]]] 2 [[JMP ?]]]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, verifica si se debe
@@ -860,10 +816,6 @@
     (assoc (assoc (assoc amb 0 (first (simb-no-parseados-aun amb))) 1 (rest (simb-no-parseados-aun amb))) 2 (conj (simb-ya-parseados amb) (simb-actual amb)))
     amb))
           
-(procesar-signo-unario ['+ (list 7 (symbol ";") 'Y ':= '- 12 (symbol ";") 'END (symbol ".")) ['VAR 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=")] :error '[[0] [[X VAR 0] [Y VAR 1]]] 2 []])
-(procesar-signo-unario [7 (list (symbol ";") 'Y ':= '- 12 (symbol ";") 'END (symbol ".")) ['VAR 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0] [Y VAR 1]]] 2 []])
-(procesar-signo-unario ['+ (list 7 (symbol ";") 'Y ':= '- 12 (symbol ";") 'END (symbol ".")) ['VAR 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0] [Y VAR 1]]] 2 []])
-(procesar-signo-unario ['- (list 7 (symbol ";") 'Y ':= '- 12 (symbol ";") 'END (symbol ".")) ['VAR 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0] [Y VAR 1]]] 2 []])
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, se devuelve un
 ; nuevo ambiente con el termino parseado (ver EBNF). Esta funcion no genera ninguna instruccion de la RI por si
@@ -877,10 +829,6 @@
   (if (= (estado amb) :sin-errores)
     amb
     amb))
-
-(termino ['X (list '* 2 'END (symbol ".")) ['VAR 'X (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0]]] 1 []])
-[X (* 2 END .) [VAR X ; BEGIN X :=] :sin-errores [[0] [[X VAR 0]]] 1 []]
-[END (.) [VAR X ; BEGIN X := X * 2] :sin-errores [[0] [[X VAR 0]]] 1 [[PFM 0] [PFI 2] MUL]]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, se devuelve un
@@ -898,15 +846,6 @@
     (assoc (assoc amb 0 (spy (first (simb-no-parseados-aun amb)))) 1 (rest (simb-no-parseados-aun amb)))
     amb))
           
-(expresion ['- (list (symbol "(") 'X '* 2 '+ 1 (symbol ")") 'END (symbol ".")) ['VAR 'X (symbol ";") 'BEGIN 'X (symbol ":=")] :error '[[0] [[X VAR 0]]] 1 []])
-[- (( X * 2 + 1 ) END .) [VAR X ; BEGIN X :=] :error [[0] [[X VAR 0]]] 1 []]
-[- (( X * 2 + 1 ) END .) [VAR X ; BEGIN X :=] :error [[0] [[X VAR 0]]] 1 []]
-(expresion ['+ (list (symbol "(") 'X '* 2 '+ 1 (symbol ")") 'END (symbol ".")) ['VAR 'X (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0]]] 1 []])
-[+ (( X * 2 + 1 ) END .) [VAR X ; BEGIN X :=] :sin-errores [[0] [[X VAR 0]]] 1 []]
-[END (.) [VAR X ; BEGIN X := + ( X * 2 + 1 )] :sin-errores [[0] [[X VAR 0]]] 1 [[PFM 0] [PFI 2] MUL [PFI 1] ADD]]
-(expresion ['- (list (symbol "(") 'X '* 2 '+ 1 (symbol ")") 'END (symbol ".")) ['VAR 'X (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0]]] 1 []])
-[- (( X * 2 + 1 ) END .) [VAR X ; BEGIN X :=] :sin-errores [[0] [[X VAR 0]]] 1 []]
-[END (.) [VAR X ; BEGIN X := - ( X * 2 + 1 )] :sin-errores [[0] [[X VAR 0]]] 1 [[PFM 0] [PFI 2] MUL [PFI 1] ADD NEG]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un operador aritmetico diadico de Clojure y un vector. Si el vector tiene mas de un elemento y si los dos
 ; ultimos elementos son numericos, devuelve el vector con los dos ultimos elementos reemplazados por el resultado de
@@ -943,17 +882,6 @@
     (conj (into [] (take (- (count pila) 2) pila)) (_aplicar-arit-aux op pila))
     pila))
 
-(aplicar-aritmetico + [1 2])
-(aplicar-aritmetico - [1 4 1])
-(aplicar-aritmetico * [1 2 4])
-(aplicar-aritmetico / [1 2 4])
-(aplicar-aritmetico + nil)
-(aplicar-aritmetico + [])
-(aplicar-aritmetico + [1])
-(aplicar-aritmetico 'hola [1 2 4])
-(aplicar-aritmetico count [1 2 4])
-(aplicar-aritmetico + '[a b c])
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un operador relacional de Clojure y un vector. Si el vector tiene mas de un elemento y si los dos
 ; ultimos elementos son numericos, devuelve el vector con los dos ultimos elementos reemplazados por el resultado de
@@ -988,14 +916,6 @@
     (conj (into [] (take (- (count pila) 2) pila)) (_aplicar-rel-aux op pila))
     pila))
 
-(aplicar-relacional > [7 5])
-(aplicar-relacional > [4 7 5])
-(aplicar-relacional = [4 7 5])
-(aplicar-relacional not= [4 7 5])
-(aplicar-relacional < [4 7 5])
-(aplicar-relacional <= [4 6 6])
-(aplicar-relacional <= '[a b c])
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un vector con instrucciones de la RI y las imprime numeradas a partir de 0. Siempre retorna nil.
 ; user=> (dump '[[PFM 0] [PFI 2] MUL [PFI 1] ADD NEG])
@@ -1018,10 +938,6 @@
 
 (defn dump [cod]
   (print (reduce str (map _dumpaux (range (count cod)) cod))))
-
-(dump '[[PFM 0] [PFI 2] MUL [PFI 1] ADD NEG])
-(dump '[HLT])
-(dump nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Si recibe un ambiente y una instruccion de la RI, y si el estado es :sin-errores, devuelve el ambiente con la
@@ -1048,15 +964,6 @@
      (assoc amb 6 (conj (bytecode amb) [instr val]))
      amb)))
 
-(generar '[nil () [VAR X] :sin-errores [[0] []] 0 [[JMP ?]]] 'HLT)
-[nil () [VAR X] :sin-errores [[0] []] 0 [[JMP ?] HLT]]
-(generar '[nil () [VAR X] :sin-errores [[0] []] 0 [[JMP ?]]] 'PFM 0)
-[nil () [VAR X] :sin-errores [[0] []] 0 [[JMP ?] [PFM 0]]]
-(generar '[nil () [VAR X] :error [[0] []] 0 [[JMP ?]]] 'HLT)
-[nil () [VAR X] :error [[0] []] 0 [[JMP ?]]]
-(generar '[nil () [VAR X] :error [[0] []] 0 [[JMP ?]]] 'PFM 0)
-[nil () [VAR X] :error [[0] []] 0 [[JMP ?]]]
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y devuelve una lista con las ternas [identificador, tipo, valor] provenientes del segundo
 ; subvector del vector contexto que tengan como identificador al ultimo simbolo ubicado en el vector de simbolos ya
@@ -1070,7 +977,6 @@
 (defn buscar-coincidencias [amb]
   (filter (partial _buscar-coin-aux (last (simb-ya-parseados amb))) (second (contexto amb))))
 
-(buscar-coincidencias '[nil () [CALL X] :sin-errores [[0 3] [[X VAR 0] [Y VAR 1] [A PROCEDURE 1] [X VAR 2] [Y VAR 3] [B PROCEDURE 2]]] 6 [[JMP ?] [JMP 4] [CAL 1] RET]])
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y la ubicacion de un JMP a corregir en el vector de bytecode. Si el estado no es :sin-errores,
 ; devuelve el ambiente intacto. De lo contrario, lo devuelve con el JMP corregido con el tamano del vector de
@@ -1087,9 +993,6 @@
     (assoc amb 6 (assoc (bytecode amb) ubi [(first ((bytecode amb) ubi)) (count (bytecode amb))]))
     amb))
 
-(fixup ['WRITELN (list 'END (symbol ".")) [] :error [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] 1)
-(fixup ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] 1)
-(fixup ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP 4] [CAL 1] RET [PFM 2] OUT NL RET]] 0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y un operador relacional de PL/0. Si el estado no es :sin-errores o si el operador no es
 ; valido, devuelve el ambiente intacto. De lo contrario, devuelve el ambiente con la instruccion de la RI
@@ -1108,11 +1011,6 @@
     (if (and (= (estado amb) :sin-errores) (contains? relacionales operador))
       (assoc amb 6 (conj (bytecode amb) (relacionales operador)))
       amb)))
-
-(generar-operador-relacional ['WRITELN (list 'END (symbol ".")) [] :error [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] '=)
-(generar-operador-relacional ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] '+)
-(generar-operador-relacional ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] '=)
-(generar-operador-relacional ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] '>=)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y un operador monadico de signo de PL/0. Si el estado no es :sin-errores o si el operador no es
@@ -1134,8 +1032,4 @@
     (assoc amb 6 (conj (bytecode amb) 'NEG))
     amb))
 
-(generar-signo [nil () [] :error '[[0] [[X VAR 0]]] 1 '[MUL ADD]] '-)
-(generar-signo [nil () [] :error '[[0] [[X VAR 0]]] 1 '[MUL ADD]] '+)
-(generar-signo [nil () [] :sin-errores '[[0] [[X VAR 0]]] 1 '[MUL ADD]] '+)
-(generar-signo [nil () [] :sin-errores '[[0] [[X VAR 0]]] 1 '[MUL ADD]] '*)
-(generar-signo [nil () [] :sin-errores '[[0] [[X VAR 0]]] 1 '[MUL ADD]] '-)
+true

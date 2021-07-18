@@ -81,68 +81,66 @@
 )
 
 (defn driver-loop
-  ([(prn)
-    (println "Interprete de PL/0 en Clojure")
-    (println "Trabajo Practico de 75.14/95.48 Lenguajes Formales - 2021")
-    (prn)
-    (println "Lista de comandos posibles:")
-    (println "AYUDA: volver a este menu")
-    (println "SALIR: volver al REPL de Clojure")
-    (println "ESCAN <archivo>: mostrar los tokens de un programa escrito en PL/0")
-    (println "VIRTU <archivo>: mostrar la RI de un programa escrito en PL/0")
-    (println "INTER <archivo>: interpretar la RI de un programa escrito en PL/0")
-    (prn)
-    (driver-loop :iniciado)])
-  ([status
-    (print "PL/0> ") (flush)
-    (try (let [linea (clojure.string/split (clojure.string/upper-case (read-line)) #" "), cabeza (first linea)]
-           (cond (= cabeza "SALIR") 'CHAU
-                 (= cabeza "AYUDA") (driver-loop)
-                 (= cabeza "ESCAN") (let [nom (second linea)]
-                                      (if (not (.exists (clojure.java.io/file nom)))
-                                        (do (print "ERROR: ") (println (buscar-mensaje 22)) (flush) (driver-loop status))
-                                        (do (listar (escanear-arch nom)) (driver-loop status))))
-                 (= cabeza "VIRTU") (let [nom (second linea)]
-                                      (if (not (.exists (clojure.java.io/file nom)))
-                                        (do (print "ERROR: ") (println (buscar-mensaje 22)) (flush) (driver-loop status))
-                                        (let [res (parsear (escanear-arch nom))]
-                                          (do (if (= (estado res) :sin-errores)
-                                                (dump (bytecode res)))
-                                              (driver-loop status)))))
-                 (= cabeza "INTER") (let [nom (second linea)]
-                                      (if (not (.exists (clojure.java.io/file nom)))
-                                        (do (print "ERROR: ") (println (buscar-mensaje 22)) (flush) (driver-loop status))
-                                        (let [res (parsear (escanear-arch nom))]
-                                          (do (if (= (estado res) :sin-errores)
-                                                (interpretar (bytecode res) (vec (repeat (prox-var res) 0)) 0 [] []))
+  ([]
+   (prn)
+   (println "Interprete de PL/0 en Clojure")
+   (println "Trabajo Practico de 75.14/95.48 Lenguajes Formales - 2021")
+   (prn)
+   (println "Lista de comandos posibles:")
+   (println "AYUDA: volver a este menu")
+   (println "SALIR: volver al REPL de Clojure")
+   (println "ESCAN <archivo>: mostrar los tokens de un programa escrito en PL/0")
+   (println "VIRTU <archivo>: mostrar la RI de un programa escrito en PL/0")
+   (println "INTER <archivo>: interpretar la RI de un programa escrito en PL/0")
+   (prn)
+   (driver-loop :iniciado))
+  ([status]
+   (print "PL/0> ") (flush)
+   (try (let [linea (clojure.string/split (clojure.string/upper-case (read-line)) #" "), cabeza (first linea)]
+          (cond (= cabeza "SALIR") 'CHAU
+                (= cabeza "AYUDA") (driver-loop)
+                (= cabeza "ESCAN") (let [nom (second linea)]
+                                     (if (not (.exists (clojure.java.io/file nom)))
+                                       (do (print "ERROR: ") (println (buscar-mensaje 22)) (flush) (driver-loop status))
+                                       (do (listar (escanear-arch nom)) (driver-loop status))))
+                (= cabeza "VIRTU") (let [nom (second linea)]
+                                     (if (not (.exists (clojure.java.io/file nom)))
+                                       (do (print "ERROR: ") (println (buscar-mensaje 22)) (flush) (driver-loop status))
+                                       (let [res (parsear (escanear-arch nom))]
+                                         (do (if (= (estado res) :sin-errores)
+                                               (dump (bytecode res)))
+                                             (driver-loop status)))))
+                (= cabeza "INTER") (let [nom (second linea)]
+                                     (if (not (.exists (clojure.java.io/file nom)))
+                                       (do (print "ERROR: ") (println (buscar-mensaje 22)) (flush) (driver-loop status))
+                                       (let [res (parsear (escanear-arch nom))]
+                                         (do (if (= (estado res) :sin-errores)
+                                               (interpretar (bytecode res) (vec (repeat (prox-var res) 0)) 0 [] []))
                                                                             ; cod           mem                            cont-prg pila-dat pila-llam
-                                              (driver-loop status)))))
-                 (= cabeza "") (driver-loop status)
-                 :else (do (print "ERROR: ") (println (buscar-mensaje 23)) (flush) (driver-loop status))))
-         (catch Exception e (println "ERROR ->" (clojure.string/trim (clojure.string/upper-case (get (Throwable->map e) :cause)))) (driver-loop status)))]))
-
+                                             (driver-loop status)))))
+                (= cabeza "") (driver-loop status)
+                :else (do (print "ERROR: ") (println (buscar-mensaje 23)) (flush) (driver-loop status))))
+        (catch Exception e (println "ERROR ->" (clojure.string/trim (clojure.string/upper-case (get (Throwable->map e) :cause)))) (driver-loop status)))))
 
 (defn escanear-arch [nom]
   (map #(let [aux (try (clojure.edn/read-string %) (catch Exception e (symbol %)))] (if (or (number? aux) (string? aux)) aux (symbol %)))
        (remove empty? (with-open [rdr (clojure.java.io/reader nom)]
                         (flatten (doall (map #(re-seq #"CONST|VAR|PROCEDURE|CALL|BEGIN|END|IF|THEN|WHILE|DO|ODD|READLN|WRITELN|WRITE|\<\=|\>\=|\<\>|\<|\>|\=|\:\=|\(|\)|\.|\,|\;|\+|\-|\*|\/|\'[^\']*\'|\d+|[A-Z][A-Z0-9]*|\!|\"|\#|\$|\%|\&|\'|\@|\?|\^|\:|\[|\\|\]|\_|\{|\||\}|\~" (a-mayusculas-salvo-strings %)) (line-seq rdr))))))))
 
-
 (defn listar
   ([prog] (listar prog 0))
-  ([prog tab
-    (if (empty? prog)
-      (prn)
-      (let [s1 (first prog)
-            s2 (second prog)]
-        (do (cond (= s1 'BEGIN) (do (prn) (print (apply str (repeat tab " "))) (println s1) (print (apply str (repeat (+ tab 2) " "))))
-                  (= s2 'END) (do (println s1) (print (apply str (repeat (- tab 2) " "))))
-                  (and (= s1 (symbol ";")) (not= s2 'BEGIN)) (do (println s1) (print (apply str (repeat tab " "))))
-                  :else (do (print s1) (print " ")))
-            (recur (rest prog) (cond (= s1 'BEGIN) (+ tab 2)
-                                     (= s2 'END) (- tab 2)
-                                     :else tab)))))]))
-
+  ([prog tab]
+   (if (empty? prog)
+     (prn)
+     (let [s1 (first prog)
+           s2 (second prog)]
+       (do (cond (= s1 'BEGIN) (do (prn) (print (apply str (repeat tab " "))) (println s1) (print (apply str (repeat (+ tab 2) " "))))
+                 (= s2 'END) (do (println s1) (print (apply str (repeat (- tab 2) " "))))
+                 (and (= s1 (symbol ";")) (not= s2 'BEGIN)) (do (println s1) (print (apply str (repeat tab " "))))
+                 :else (do (print s1) (print " ")))
+           (recur (rest prog) (cond (= s1 'BEGIN) (+ tab 2)
+                                    (= s2 'END) (- tab 2)
+                                    :else tab)))))))
 
 (defn dar-error [amb cod]
   (if (= (estado amb) :sin-errores)
@@ -157,7 +155,6 @@
         (flush)
         [(simb-actual amb) '() (simb-ya-parseados amb) cod])
     amb))
-
 
 (defn buscar-mensaje [cod]
   (case cod
@@ -186,49 +183,40 @@
     23 "COMANDO DESCONOCIDO"
     cod))
 
-
 (defn parsear [tokens]
   (let [simbolo-inicial (first tokens)]
     (if (nil? simbolo-inicial)
       (dar-error ['EOF '() [] :sin-errores] 1)
-      (programa [simbolo-inicial (rest tokens) [] :sin-errores [] 0 []]))))
+      (programa [simbolo-inicial (rest tokens) [] :sin-errores [] 0 []])))
                    ; [simb-actual  simb-no-parseados-aun  simb-ya-parseados  estado  contexto  prox-var  bytecode]
-
+  )
 
 (defn simb-actual [amb]
   (amb 0))
 
-
 (defn simb-no-parseados-aun [amb]
   (amb 1))
-
 
 (defn simb-ya-parseados [amb]
   (amb 2))
 
-
 (defn estado [amb]
   (amb 3))
-
 
 (defn contexto [amb]
   (amb 4))
 
-
 (defn prox-var [amb]
   (amb 5))
 
-
 (defn bytecode [amb]
   (amb 6))
-
 
 (defn escanear [amb]
   (if (= (estado amb) :sin-errores)
     [(let [simb (first (simb-no-parseados-aun amb))]
        (if (nil? simb) 'EOF simb)) (rest (simb-no-parseados-aun amb)) (conj (simb-ya-parseados amb) (simb-actual amb)) (estado amb) (contexto amb) (prox-var amb) (bytecode amb)]
     amb))
-
 
 (defn procesar-terminal [amb x cod-err]
   (if (= (estado amb) :sin-errores)
@@ -237,14 +225,12 @@
       (dar-error amb cod-err))
     amb))
 
-
 (defn controlar-duplicado [amb]
   (if (= (estado amb) :sin-errores)
     (if (ya-declarado-localmente? (last (simb-ya-parseados amb)) (contexto amb))
       (dar-error amb 16)
       amb)
     amb))
-
 
 (defn verificar-tipo [amb control]
   (if (= (estado amb) :sin-errores)
@@ -254,48 +240,40 @@
         (control amb coincidencias)))
     amb))
 
-
 (defn verificar-tipo-var [amb]
   (verificar-tipo amb #(if (not= 'VAR (second (last %2)))
                          (dar-error %1 17)
                          %1)))
-
 
 (defn verificar-tipo-procedure [amb]
   (verificar-tipo amb #(if (not= 'PROCEDURE (second (last %2)))
                          (dar-error %1 18)
                          %1)))
 
-
 (defn verificar-tipo-const-o-var [amb]
   (verificar-tipo amb #(if (not (contains? (hash-set 'CONST 'VAR) (second (last %2))))
                          (dar-error %1 19)
                          %1)))
-
 
 (defn cargar-const-en-tabla [amb]
   (if (= (estado amb) :sin-errores)
     (assoc amb 4 [((contexto amb) 0) (conj ((contexto amb) 1) [(last (drop-last 2 (simb-ya-parseados amb))) 'CONST (last (simb-ya-parseados amb))])])
     amb))
 
-
 (defn cargar-procedure-en-tabla [amb]
   (if (= (estado amb) :sin-errores)
     (assoc amb 4 [((contexto amb) 0) (conj ((contexto amb) 1) [(last (simb-ya-parseados amb)) 'PROCEDURE (count (bytecode amb))])])
     amb))
-
 
 (defn inicializar-contexto-global [amb]
   (if (= (estado amb) :sin-errores)
     (assoc amb 4 [[0] []])           ; [fronteras  tabla]
     amb))
 
-
 (defn restaurar-contexto-anterior [amb]
   (if (= (estado amb) :sin-errores)
     (assoc amb 4 [(vec (butlast ((contexto amb) 0))) (subvec ((contexto amb) 1) 0 (last ((contexto amb) 0)))])
     amb))
-
 
 (defn programa [amb]
   (-> amb
@@ -304,7 +282,6 @@
       (procesar-terminal ,,, (symbol ".") 2)
       (generar ,,, 'HLT)))
 
-
 (defn fixup-bloque [amb ini-bloque]
   (if (= (estado amb) :sin-errores)
     (if (not= (inc (count (bytecode ini-bloque))) (count (bytecode amb)))
@@ -312,19 +289,17 @@
       (assoc amb 6 (vec (butlast (bytecode amb)))))
     amb))
 
-
 (defn bloque [amb]
   (if (= (estado amb) :sin-errores)
-    (let [ini-bloque amb
-          (-> amb
-              (generar ,,, 'JMP '?)
-              (declaracion-const)
-              (declaracion-var)
-              (declaraciones-procedures)
-              (fixup-bloque ,,, ini-bloque)
-              (proposicion))])
+    (let [ini-bloque amb]
+      (-> amb
+          (generar ,,, 'JMP '?)
+          (declaracion-const)
+          (declaracion-var)
+          (declaraciones-procedures)
+          (fixup-bloque ,,, ini-bloque)
+          (proposicion)))
     amb))
-
 
 (defn declarar-mas-idents-igual-numero [amb]
   (if (= (estado amb) :sin-errores)
@@ -339,7 +314,6 @@
           (recur))
       amb)
     amb))
-
 
 (defn declaracion-const [amb]
   (if (= (estado amb) :sin-errores)
@@ -356,7 +330,6 @@
       amb)
     amb))
 
-
 (defn declarar-mas-idents [amb]
   (if (= (estado amb) :sin-errores)
     (if (= (simb-actual amb) (symbol ","))
@@ -368,7 +341,6 @@
           (recur))
       amb)
     amb))
-
 
 (defn declaraciones-procedures [amb]
   (if (= (estado amb) :sin-errores)
@@ -388,7 +360,6 @@
       amb)
     amb))
 
-
 (defn procesar-mas-propos [amb]
   (if (= (estado amb) :sin-errores)
     (if (= (simb-actual amb) (symbol ";"))
@@ -398,7 +369,6 @@
           (recur))
       amb)
     amb))
-
 
 (defn leer-mas-idents [amb]
   (if (= (estado amb) :sin-errores)
@@ -412,7 +382,6 @@
       amb)
     amb))
 
-
 (defn escribir-cadena-o-expresion [amb]
   (if (= (estado amb) :sin-errores)
     (if (cadena? (simb-actual amb))
@@ -424,7 +393,6 @@
           (generar ,,, 'OUT)))
     amb))
 
-
 (defn escribir-mas-cadenas-o-expresiones [amb]
   (if (= (estado amb) :sin-errores)
     (if (= (simb-actual amb) (symbol ","))
@@ -434,7 +402,6 @@
           (recur))
       amb)
     amb))
-
 
 (defn procesar-writeln [amb]
   (if (= (estado amb) :sin-errores)
@@ -446,7 +413,6 @@
           (procesar-terminal ,,, (symbol ")") 13))
       amb)
     amb))
-
 
 (defn proposicion [amb]
   (if (= (estado amb) :sin-errores)
@@ -475,28 +441,28 @@
                   (procesar-terminal ,,, 'END 9))
         IF (let [primera-fase (-> amb
                                   (escanear)
-                                  (condicion))
-                 (if (= (estado primera-fase) :sin-errores)
-                   (-> primera-fase
-                       (generar ,,, 'JC (+ 2 (count (bytecode primera-fase))))
-                       (generar ,,, 'JMP '?)
-                       (procesar-terminal ,,, 'THEN 10)
-                       (proposicion)
-                       (fixup ,,, (inc (count (bytecode primera-fase)))))
-                   primera-fase)])
+                                  (condicion))]
+             (if (= (estado primera-fase) :sin-errores)
+               (-> primera-fase
+                   (generar ,,, 'JC (+ 2 (count (bytecode primera-fase))))
+                   (generar ,,, 'JMP '?)
+                   (procesar-terminal ,,, 'THEN 10)
+                   (proposicion)
+                   (fixup ,,, (inc (count (bytecode primera-fase)))))
+               primera-fase))
         WHILE (let [primera-fase (-> amb
-                                     (escanear))
-                    (let [segunda-fase (-> primera-fase
-                                           (condicion))
-                          (if (= (estado segunda-fase) :sin-errores)
-                            (-> segunda-fase
-                                (generar ,,, 'JC (+ 2 (count (bytecode segunda-fase))))
-                                (generar ,,, 'JMP '?)
-                                (procesar-terminal ,,, 'DO 11)
-                                (proposicion)
-                                (generar ,,, 'JMP (count (bytecode primera-fase)))
-                                (fixup ,,, (inc (count (bytecode segunda-fase)))))
-                            segunda-fase)])])
+                                     (escanear))]
+                (let [segunda-fase (-> primera-fase
+                                       (condicion))]
+                  (if (= (estado segunda-fase) :sin-errores)
+                    (-> segunda-fase
+                        (generar ,,, 'JC (+ 2 (count (bytecode segunda-fase))))
+                        (generar ,,, 'JMP '?)
+                        (procesar-terminal ,,, 'DO 11)
+                        (proposicion)
+                        (generar ,,, 'JMP (count (bytecode primera-fase)))
+                        (fixup ,,, (inc (count (bytecode segunda-fase)))))
+                    segunda-fase)))
         READLN (-> amb
                    (escanear)
                    (procesar-terminal ,,, (symbol "(") 12)
@@ -518,7 +484,6 @@
         amb))
     amb))
 
-
 (defn procesar-operador-relacional [amb]
   (if (= (estado amb) :sin-errores)
     (case (simb-actual amb)
@@ -536,7 +501,6 @@
              (escanear))
       (dar-error amb 14))
     amb))
-
 
 (defn condicion [amb]
   (if (= (estado amb) :sin-errores)
@@ -556,7 +520,6 @@
           primera-fase)))
     amb))
 
-
 (defn procesar-mas-terminos [amb]
   (if (= (estado amb) :sin-errores)
     (case (simb-actual amb)
@@ -572,7 +535,6 @@
             (recur))
       amb)
     amb))
-
 
 (defn procesar-mas-factores [amb]
   (if (= (estado amb) :sin-errores)
@@ -590,14 +552,13 @@
       amb)
     amb))
 
-
 (defn factor [amb]
   (if (= (estado amb) :sin-errores)
     (cond
-      (identificador? (simb-actual amb)) (-> amb)
-      (escanear)
-      (verificar-tipo-const-o-var)
-      (generar-factor-const-o-var)
+      (identificador? (simb-actual amb)) (-> amb
+                                             (escanear)
+                                             (verificar-tipo-const-o-var)
+                                             (generar-factor-const-o-var))
       (integer? (simb-actual amb)) (let [num (simb-actual amb)]
                                      (-> amb
                                          (escanear)
@@ -609,14 +570,12 @@
       :else (dar-error amb 15))
     amb))
 
-
 (defn generar-con-valor [amb instr]
   (if (= (estado amb) :sin-errores)
     (let [coincidencias (buscar-coincidencias amb)
-          valor (nth (last coincidencias) 2)
-          (generar amb instr valor)])
+          valor (nth (last coincidencias) 2)]
+      (generar amb instr valor))
     amb))
-
 
 (defn generar-factor-const-o-var [amb]
   (if (= (estado amb) :sin-errores)
@@ -627,7 +586,6 @@
         (generar amb 'PFI valor)
         (generar amb 'PFM valor)))
     amb))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; LA SIGUIENTE FUNCION DEBERA SER COMPLETADA PARA QUE ANDE EL INTERPRETE DE PL/0 

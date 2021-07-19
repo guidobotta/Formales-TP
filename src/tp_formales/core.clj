@@ -814,7 +814,9 @@
 (defn procesar-signo-unario [amb]
   (if (and (= (estado amb) :sin-errores) (contains? #{'+ '-} (simb-actual amb)))
     (assoc (assoc (assoc amb 0 (first (simb-no-parseados-aun amb))) 1 (rest (simb-no-parseados-aun amb))) 2 (conj (simb-ya-parseados amb) (simb-actual amb)))
-    amb))
+    amb)) 
+
+CAMBIAR EL TEMA DE QUE SE REEMPLAZA POR EL PRIMERO DE LO SEGUNDO EN VEZ DE HASTA LLEGAR A UN ;
           
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, se devuelve un
@@ -843,7 +845,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn expresion [amb]
   (if (= (estado amb) :sin-errores)
-    (assoc (assoc amb 0 (spy (first (simb-no-parseados-aun amb)))) 1 (rest (simb-no-parseados-aun amb)))
+    amb
     amb))
           
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

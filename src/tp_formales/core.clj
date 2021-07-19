@@ -795,7 +795,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn declaracion-var [amb]
   (if (= (estado amb) :sin-errores)
-    amb
+    (if (= (simb-actual amb) 'VAR)
+      (-> amb
+          (escanear)
+          (procesar-terminal ,,, identificador? 5)
+          (controlar-duplicado)
+          (cargar-var-en-tabla)
+          (declarar-mas-idents)
+          (procesar-terminal ,,, (symbol ";") 3))
+      amb)
     amb))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -811,13 +819,17 @@
 ; user=> (procesar-signo-unario ['- (list 7 (symbol ";") 'Y ':= '- 12 (symbol ";") 'END (symbol ".")) ['VAR 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0] [Y VAR 1]]] 2 []])
 ; [7 (; Y := - 12 ; END .) [VAR X , Y ; BEGIN X := -] :sin-errores [[0] [[X VAR 0] [Y VAR 1]]] 2 []]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (defn procesar-signo-unario [amb]
+;;   (if (and (= (estado amb) :sin-errores) (contains? #{'+ '-} (simb-actual amb)))
+;;     (assoc (assoc (assoc amb 0 (first (simb-no-parseados-aun amb))) 1 (rest (simb-no-parseados-aun amb))) 2 (conj (simb-ya-parseados amb) (simb-actual amb)))
+;;     amb)) 
+
 (defn procesar-signo-unario [amb]
   (if (and (= (estado amb) :sin-errores) (contains? #{'+ '-} (simb-actual amb)))
-    (assoc (assoc (assoc amb 0 (first (simb-no-parseados-aun amb))) 1 (rest (simb-no-parseados-aun amb))) 2 (conj (simb-ya-parseados amb) (simb-actual amb)))
-    amb)) 
+    (escanear amb)
+    amb))
 
-CAMBIAR EL TEMA DE QUE SE REEMPLAZA POR EL PRIMERO DE LO SEGUNDO EN VEZ DE HASTA LLEGAR A UN ;
-          
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y, si su estado no es :sin-errores, lo devuelve intacto. De lo contrario, se devuelve un
 ; nuevo ambiente con el termino parseado (ver EBNF). Esta funcion no genera ninguna instruccion de la RI por si
@@ -829,7 +841,9 @@ CAMBIAR EL TEMA DE QUE SE REEMPLAZA POR EL PRIMERO DE LO SEGUNDO EN VEZ DE HASTA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn termino [amb]
   (if (= (estado amb) :sin-errores)
-    amb
+    (-> amb
+        (factor)
+        (procesar-mas-factores))
     amb))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -845,7 +859,11 @@ CAMBIAR EL TEMA DE QUE SE REEMPLAZA POR EL PRIMERO DE LO SEGUNDO EN VEZ DE HASTA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn expresion [amb]
   (if (= (estado amb) :sin-errores)
-    amb
+    (-> amb
+         (procesar-signo-unario)
+         (termino)
+         (procesar-mas-terminos)
+         (generar-signo (first amb)))
     amb))
           
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

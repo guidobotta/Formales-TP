@@ -1,5 +1,3 @@
-(ns tp-formales.core)
-
 (declare driver-loop)
 (declare escanear-arch)
 (declare a-mayusculas-salvo-strings)
@@ -594,7 +592,7 @@
 ; POP: Saca un valor de la pila de datos, lo coloca en una direccion de memoria que forma parte de la instruccion (direccionamiento directo) e incrementa el contador de programa
 ; PFM: Coloca en la pila de datos un valor proveniente de una direccion de memoria que forma parte de la instruccion (PUSH FROM MEMORY: direccionamiento directo) e incrementa el contador de programa 
 ; PFI: Coloca en la pila de datos un valor que forma parte de la instruccion (PUSH FROM INSTRUCTION: direccionamiento inmediato) e incrementa el contador de programa 
-; second fetched
+; 
 ; ADD: Reemplaza los dos valores ubicados en el tope de la pila de datos por su suma e incrementa el contador de programa  
 ; SUB: Reemplaza los dos valores ubicados en el tope de la pila de datos por su resta e incrementa el contador de programa  
 ; MUL: Reemplaza los dos valores ubicados en el tope de la pila de datos por su producto e incrementa el contador de programa  
@@ -616,6 +614,11 @@
 ; RET: Saca una direccion de la pila de llamadas y la coloca en el contador de programa
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn aplicar-paridad [pila]
+  (if (and (>= (count pila) 1)
+           (number? (last pila))
+           (even? (last pila))) 1 0))
+
 (defn interpretar [cod mem cont-prg pila-dat pila-llam]
   (let [fetched (cod cont-prg)
         opcode (if (symbol? fetched) fetched (first fetched))]
@@ -631,9 +634,9 @@
             (do (print (apply str (butlast (rest (str (second fetched)))))) (flush)
                 (recur cod mem (inc cont-prg) pila-dat pila-llam)))
       NL (do (prn) (recur cod mem (inc cont-prg) pila-dat pila-llam))
-      POP (recur cod mem (inc cont-prg) pila-dat pila-llam)
-      PFM (recur cod mem (inc cont-prg) pila-dat pila-llam)
-      PFI (recur cod mem (inc cont-prg) pila-dat pila-llam)
+      POP (recur cod (assoc mem (second fetched) (peek pila-dat)) (inc cont-prg) (pop pila-dat) pila-llam)
+      PFM (recur cod mem (inc cont-prg) (conj pila-dat (mem (second fetched))) pila-llam)
+      PFI (recur cod mem (inc cont-prg) (conj pila-dat (second fetched)) pila-llam)
       ADD (recur cod mem (inc cont-prg) (aplicar-aritmetico + pila-dat) pila-llam)
       SUB (recur cod mem (inc cont-prg) (aplicar-aritmetico - pila-dat) pila-llam)
       MUL (recur cod mem (inc cont-prg) (aplicar-aritmetico * pila-dat) pila-llam)
@@ -646,16 +649,12 @@
       LTE (recur cod mem (inc cont-prg) (aplicar-relacional <= pila-dat) pila-llam)
       NEG (recur cod mem (inc cont-prg) (aplicar-aritmetico * (conj pila-dat -1)) pila-llam)
       ODD (recur cod mem (inc cont-prg) (aplicar-paridad pila-dat) pila-llam)
-      JMP (recur cod mem cont-prg pila-dat pila-llam)
-      JC (recur cod mem cont-prg pila-dat pila-llam)
-      CAL (recur cod mem cont-prg pila-dat pila-llam)
-      RET (recur cod mem cont-prg pila-dat pila-llam))))
-
-
-(defn aplicar-paridad [pila]
-  (if (and (>= (count pila) 1)
-           (number? (last pila))
-           (even? (last pila))) 1 0))
+      JMP (recur cod mem (second fetched) pila-dat pila-llam)
+      JC (if (zero? (peek pila-dat))
+           (recur cod mem (inc cont-prg) (pop pila-dat) pila-llam)
+           (recur cod mem (second fetched) (pop pila-dat) pila-llam))
+      CAL (recur cod mem (second fetched) pila-dat (conj pila-llam (inc cont-prg)))
+      RET (recur cod mem (peek pila-llam) pila-dat (pop pila-llam)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; LAS FUNCIONES QUE SIGUEN DEBERAN SER IMPLEMENTADAS PARA QUE ANDE EL INTERPRETE DE PL/0 

@@ -826,12 +826,6 @@
 ; user=> (procesar-signo-unario ['- (list 7 (symbol ";") 'Y ':= '- 12 (symbol ";") 'END (symbol ".")) ['VAR 'X (symbol ",") 'Y (symbol ";") 'BEGIN 'X (symbol ":=")] :sin-errores '[[0] [[X VAR 0] [Y VAR 1]]] 2 []])
 ; [7 (; Y := - 12 ; END .) [VAR X , Y ; BEGIN X := -] :sin-errores [[0] [[X VAR 0] [Y VAR 1]]] 2 []]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (defn procesar-signo-unario [amb]
-;;   (if (and (= (estado amb) :sin-errores) (contains? #{'+ '-} (simb-actual amb)))
-;;     (assoc (assoc (assoc amb 0 (first (simb-no-parseados-aun amb))) 1 (rest (simb-no-parseados-aun amb))) 2 (conj (simb-ya-parseados amb) (simb-actual amb)))
-;;     amb)) 
-
 (defn procesar-signo-unario [amb]
   (if (and (= (estado amb) :sin-errores) (contains? #{'+ '-} (simb-actual amb)))
     (escanear amb)

@@ -17,6 +17,7 @@
    (is (= (generar-operador-relacional ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] '+) '[WRITELN (END .) [] :sin-errores [[0 3] []] 6 [[JMP ?] [JMP ?] [CAL 1] RET]]))
    (is (= (generar-operador-relacional ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] '=) '[WRITELN (END .) [] :sin-errores [[0 3] []] 6 [[JMP ?] [JMP ?] [CAL 1] RET EQ]]))
    (is (= (generar-operador-relacional ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] '>=) '[WRITELN (END .) [] :sin-errores [[0 3] []] 6 [[JMP ?] [JMP ?] [CAL 1] RET GTE]]))
+   (is (= (generar-operador-relacional ['WRITELN (list 'END (symbol ".")) [] :sin-errores [[0 3] []] 6 '[[JMP ?] [JMP ?] [CAL 1] RET]] '<>) '[WRITELN (END .) [] :sin-errores [[0 3] []] 6 [[JMP ?] [JMP ?] [CAL 1] RET NEQ]]))
     ))
 
 (deftest fixup-test
@@ -28,7 +29,9 @@
 
 (deftest buscar-coincidencias-test
   (testing "Funcion: buscar-coincidencias"
-    (is (= (buscar-coincidencias '[nil () [CALL X] :sin-errores [[0 3] [[X VAR 0] [Y VAR 1] [A PROCEDURE 1] [X VAR 2] [Y VAR 3] [B PROCEDURE 2]]] 6 [[JMP ?] [JMP 4] [CAL 1] RET]]) '([X VAR 0] [X VAR 2])))))
+    (is (= (buscar-coincidencias '[nil () [CALL X] :sin-errores [[0 3] [[X VAR 0] [Y VAR 1] [A PROCEDURE 1] [X VAR 2] [Y VAR 3] [B PROCEDURE 2]]] 6 [[JMP ?] [JMP 4] [CAL 1] RET]]) '([X VAR 0] [X VAR 2])))
+    (is (= (buscar-coincidencias '[nil () [CALL Y] :sin-errores [[0 3] [[X VAR 0] [Y VAR 1] [A PROCEDURE 1] [X VAR 2] [Y VAR 3] [B PROCEDURE 2]]] 6 [[JMP ?] [JMP 4] [CAL 1] RET]]) '([Y VAR 1] [Y VAR 3])))
+    ))
 
 (deftest generar-test
   (testing "Funcion: generar"
@@ -38,8 +41,6 @@
    (is (= (generar '[nil () [VAR X] :error [[0] []] 0 [[JMP ?]]] 'PFM 0) '[nil () [VAR X] :error [[0] []] 0 [[JMP ?]]]))
     ))
 
-; CHEQUEAR ESTAS PRUEBAS, NO SON MUY FIELES A LO QUE PIDE
-; Y EN (dump nil) HAGO OTRA COSA
 (deftest dump-test
   (testing "Funcion: dump"
    (is (= (with-out-str (dump '[[PFM 0] [PFI 2] MUL [PFI 1] ADD NEG])) "0 [PFM 0]\n1 [PFI 2]\n2 MUL\n3 [PFI 1]\n4 ADD\n5 NEG\n"))
@@ -126,6 +127,7 @@
     (is (= (cadena? "Hola") false))
     (is (= (cadena? "'Hola") false))
     (is (= (cadena? 'Hola) false))
+    (is (= (cadena? "'*****************************************************************'") true))
     ))
 
 (deftest identificador?-test

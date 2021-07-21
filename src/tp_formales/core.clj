@@ -1,3 +1,5 @@
+(ns tp-formales.core)
+
 (declare driver-loop)
 (declare escanear-arch)
 (declare a-mayusculas-salvo-strings)
@@ -73,10 +75,15 @@
 (declare _ya-declarado?)
 (declare _buscar-coin-aux)
 
-(defn spy
-  ([x] (do (prn x) x))
-  ([msg x] (do (print msg) (print ": ") (prn x) x))
-)
+;; (defn spy
+;;   ([x] (do (prn x) x))
+;;   ([msg x] (do (print msg) (print ": ") (prn x) x))
+;; )
+
+(defn -main
+ "Ejemplo de Proyecto en Clojure"
+ [& args]
+ (driver-loop))
 
 (defn driver-loop
   ([]
@@ -615,9 +622,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn aplicar-paridad [pila]
-  (if (and (>= (count pila) 1)
-           (number? (last pila))
-           (even? (last pila))) 1 0))
+  (if (even? (last pila)) 
+    (conj (pop pila) 0) 
+    (conj (pop pila) 1)))
 
 (defn interpretar [cod mem cont-prg pila-dat pila-llam]
   (let [fetched (cod cont-prg)
@@ -696,7 +703,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn palabra-reservada? [x]
   (contains? #{"CONST" "VAR" "PROCEDURE" "CALL" "BEGIN"
-               "END" "IF" "THEN" "WHILE" "DO" "ODD"} (str x)))
+               "END" "IF" "THEN" "WHILE" "DO" "ODD" "WRITELN" 
+               "READLN" "WRITE"} (str x)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un dato y devuelve true si es un identificador valido de PL/0; si no, devuelve false. Por ejemplo:
@@ -729,7 +737,7 @@
 ; false
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn cadena? [x]
-  (and (string? x) (>= (count x) 2) (= (first x) \') (= (last x) \')))
+  (and (>= (count (str x)) 2) (= (first (str x)) \') (= (last (str x)) \')))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un identificador y un contexto (un vector formado por dos subvectores: el primero con las sucesivas
@@ -859,10 +867,10 @@
 (defn expresion [amb]
   (if (= (estado amb) :sin-errores)
     (-> amb
-         (procesar-signo-unario)
-         (termino)
-         (procesar-mas-terminos)
-         (generar-signo (first amb)))
+        (procesar-signo-unario)
+        (termino)
+        (procesar-mas-terminos)
+        (generar-signo (simb-actual amb)))
     amb))
           
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -994,7 +1002,7 @@
   (= simb (first lista)))
 
 (defn buscar-coincidencias [amb]
-  (filter (partial _buscar-coin-aux (last (simb-ya-parseados amb))) (second (contexto amb))))
+  (filter (partial _buscar-coin-aux(last (simb-ya-parseados amb))) (second (contexto amb))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Recibe un ambiente y la ubicacion de un JMP a corregir en el vector de bytecode. Si el estado no es :sin-errores,
@@ -1026,7 +1034,7 @@
 ; [WRITELN (END .) [] :sin-errores [[0 3] []] 6 [[JMP ?] [JMP ?] [CAL 1] RET GTE]]
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn generar-operador-relacional [amb operador]
-  (let [relacionales {'= 'EQ, 'not= 'NEQ, '> 'GT, '>= 'GTE, '< 'LT, '<= 'LTE}]
+  (let [relacionales {'= 'EQ, '<> 'NEQ, '> 'GT, '>= 'GTE, '< 'LT, '<= 'LTE}]
     (if (and (= (estado amb) :sin-errores) (contains? relacionales operador))
       (assoc amb 6 (conj (bytecode amb) (relacionales operador)))
       amb)))
